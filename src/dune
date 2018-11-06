@@ -1,0 +1,5 @@
+(library
+ (name        tzscan)
+ (public_name tzscan)
+ (libraries  ocplib-json-typed ocplib-resto-cohttp yojson)
+ (synopsis "TzScan API"))
