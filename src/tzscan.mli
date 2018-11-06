@@ -27,4 +27,5 @@ val all_media_types : Media_type.t list
 module V2 : sig
   val date :
     ([ `GET ], unit, unit, unit, unit, float list, unit) Service.t
+    (** date on TzScan node. *)
 end
