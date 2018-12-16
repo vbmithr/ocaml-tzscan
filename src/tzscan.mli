@@ -29,3 +29,35 @@ module V2 : sig
     ([ `GET ], unit, unit, unit, unit, float list, unit) Service.t
     (** date on TzScan node. *)
 end
+
+module V3 : sig
+  type endorsement = {
+    block : string ;
+    level : int64 ;
+    endorser : string ;
+    slots : int list ;
+    op_level : int64 ;
+    priority : int ;
+    timestamp : string ;
+  }
+
+  val endorsement_encoding :
+    endorsement Json_encoding.encoding
+
+  type operation_kind =
+    | Endorsement of endorsement
+    | Unknown of unit
+
+  type operation = {
+    hash : string ;
+    block_hash : string ;
+    network_hash : string ;
+    kind : operation_kind ;
+  }
+
+  val operation_encoding : operation Json_encoding.encoding
+
+  val operations :
+    ([ `GET ], unit, unit * string, int option, unit, operation list, unit)
+      Service.t
+end

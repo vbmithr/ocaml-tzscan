@@ -63,3 +63,80 @@ module V2 = struct
       ~error: Json_encoding.unit
       Path.(root / "v2" / "date")
 end
+
+module V3 = struct
+  type endorsement = {
+    block : string ;
+    level : int64 ;
+    endorser : string ;
+    slots : int list ;
+    op_level : int64 ;
+    priority : int ;
+    timestamp : string ;
+  }
+
+  let tz_encoding =
+    let open Json_encoding in
+    conv
+      (fun s -> (), s) (fun ((), s) -> s)
+      (merge_objs unit (obj1 (req "tz" string)))
+
+  let endorsement_encoding =
+    let open Json_encoding in
+    conv
+      (fun { block ; level ; endorser ; slots ; op_level ; priority ; timestamp } ->
+         ((), block, level, endorser, slots, op_level, priority, timestamp))
+      (fun ((), block, level, endorser, slots, op_level, priority, timestamp) ->
+         { block ; level ; endorser ; slots ; op_level ; priority ; timestamp })
+      (obj8
+         (req "kind" (constant "endorsement"))
+         (req "block" string)
+         (req "level" int53)
+         (req "endorser" tz_encoding)
+         (req "slots" (list int))
+         (req "op_level" int53)
+         (req "priority" int)
+         (dft "timestamp" string ""))
+
+  type operation_kind =
+    | Endorsement of endorsement
+    | Unknown of unit
+
+  let operation_kind_encoding =
+    let open Json_encoding in
+    union [
+      case endorsement_encoding
+        (function Endorsement e -> Some e | _ -> None)
+        (fun e -> Endorsement e) ;
+    ]
+
+  type operation = {
+    hash : string ;
+    block_hash : string ;
+    network_hash : string ;
+    kind : operation_kind ;
+  }
+
+  let operation_encoding =
+    let open Json_encoding in
+    conv
+      (fun { hash ; block_hash ; network_hash ; kind } ->
+         (hash, block_hash, network_hash, kind))
+      (fun (hash, block_hash, network_hash, kind) ->
+         { hash ; block_hash ; network_hash ; kind })
+      (obj4
+         (req "hash" string)
+         (req "block_hash" string)
+         (req "network_hash" string)
+         (req "type" operation_kind_encoding))
+
+  let operations =
+    Service.get_service
+      ~description: "operations"
+      ~query: Query.(query (fun n -> n)
+                     |+ (opt_field "number" Resto.Arg.int) (fun n -> n)
+                     |> seal)
+      ~output: Json_encoding.(list operation_encoding)
+      ~error: Json_encoding.unit
+      Path.(root / "v3" / "operations" /: Resto.Arg.string)
+end
