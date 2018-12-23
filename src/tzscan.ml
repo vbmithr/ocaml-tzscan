@@ -65,6 +65,14 @@ module V2 = struct
 end
 
 module V3 = struct
+  let snapshot_levels =
+    Service.get_service
+      ~description: "Snapshotted levels"
+      ~query: Query.empty
+      ~output: Json_encoding.(list int32)
+      ~error: Json_encoding.unit
+      Path.(root / "v2" / "snapshot_levels")
+
   type endorsement = {
     block : string ;
     level : int64 ;

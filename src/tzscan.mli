@@ -31,6 +31,10 @@ module V2 : sig
 end
 
 module V3 : sig
+  val snapshot_levels :
+    ([ `GET ], unit, unit, unit, unit, int32 list, unit)
+      Service.t
+
   type endorsement = {
     block : string ;
     level : int64 ;
