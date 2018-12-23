@@ -15,6 +15,8 @@
  *
  *)
 
+open Lwt.Infix
+
 module RPC = Resto_cohttp.Client.Make(Resto_encoding)
 module Media_type = Resto_cohttp.Media_type.Make(Resto_encoding)
 open Resto
@@ -54,24 +56,36 @@ let json  = {
 
 let all_media_types = [ json ]
 
+let base = Uri.of_string "https://api6.tzscan.io"
+
 module V2 = struct
-  let date =
+  let date_service =
     Service.get_service
       ~description: "date"
       ~query: Query.empty
       ~output: Json_encoding.(list float)
       ~error: Json_encoding.unit
       Path.(root / "v2" / "date")
+
+  let date ?(base=base) () =
+    RPC.call_service
+      ~base all_media_types date_service () () () >>= fun (_, _, res) ->
+    Lwt.return res
 end
 
 module V3 = struct
-  let snapshot_levels =
+  let snapshot_levels_service =
     Service.get_service
       ~description: "Snapshotted levels"
       ~query: Query.empty
       ~output: Json_encoding.(list int32)
       ~error: Json_encoding.unit
       Path.(root / "v2" / "snapshot_levels")
+
+  let snapshot_levels ?(base=base) () =
+    RPC.call_service
+      ~base all_media_types snapshot_levels_service () () () >>= fun (_, _, res) ->
+    Lwt.return res
 
   type endorsement = {
     block : string ;
@@ -138,7 +152,7 @@ module V3 = struct
          (req "network_hash" string)
          (req "type" operation_kind_encoding))
 
-  let operations =
+  let operations_service =
     Service.get_service
       ~description: "operations"
       ~query: Query.(query (fun n -> n)

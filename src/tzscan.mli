@@ -25,15 +25,21 @@ val json : Media_type.t
 val all_media_types : Media_type.t list
 
 module V2 : sig
-  val date :
+  val date_service :
     ([ `GET ], unit, unit, unit, unit, float list, unit) Service.t
     (** date on TzScan node. *)
+
+  val date :
+    ?base:Uri.t -> unit -> (float list, unit) service_result Lwt.t
 end
 
 module V3 : sig
-  val snapshot_levels :
+  val snapshot_levels_service :
     ([ `GET ], unit, unit, unit, unit, int32 list, unit)
       Service.t
+
+  val snapshot_levels :
+    ?base:Uri.t -> unit -> (int32 list, unit) service_result Lwt.t
 
   type endorsement = {
     block : string ;
@@ -61,7 +67,7 @@ module V3 : sig
 
   val operation_encoding : operation Json_encoding.encoding
 
-  val operations :
+  val operations_service :
     ([ `GET ], unit, unit * string, int option, unit, operation list, unit)
       Service.t
 end
