@@ -29,7 +29,7 @@ let unit = Json_encoding.empty
 let untyped = Json_encoding.(obj1 (req "untyped" string))
 let conv f g t =
   Json_encoding.conv ~schema:(Json_encoding.schema t) f g t
-let schema t = Json_encoding.schema t
+let schema = Json_encoding.schema
 
 let schema_encoding =
   Json_encoding.(any_schema)
